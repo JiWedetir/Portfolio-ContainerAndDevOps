@@ -71,6 +71,7 @@ jobs:
         name: ${{ steps.get_tag_version.outputs.tag_version }}
         generateReleaseNotes: false
         prerelease: false
+        omitName: true
         artifacts: "DevOps-Demo-${{ steps.get_version.outputs.version }},public/index.html"
 
     
