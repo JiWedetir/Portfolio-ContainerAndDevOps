@@ -60,15 +60,14 @@ jobs:
 
     - name: Extract Version from Tag
       id: get_tag_version
-      run: echo "::set-output name=ref_name::$(echo ${{ github.ref_name }} | cut -d'/' -f2)"    
+      run: echo "::setOutput name=tag_version::$(echo ${{ github.ref_name }} | cut -d'/' -f2)"    
         
     - name: 📦 Create Release
       uses: ncipollo/release-action@v1
       with:
-        name: ${{ steps.extract_ref.outputs.ref_name }}
+        name: ${{ steps.extract_ref.outputs.tag_version }}
         generateReleaseNotes: false
         prerelease: false
         artifacts: "DevOps-Demo-${{ steps.get_version.outputs.version }},public/index.html"
-        bodyFile: "body.md"
 
     
