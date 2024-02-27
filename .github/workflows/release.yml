@@ -68,7 +68,7 @@ jobs:
     - name: 📦 Create Release
       uses: ncipollo/release-action@v1
       with:
-        name: ${{ steps.extract_ref.outputs.tag_version }}
+        name: ${{ steps.get_tag_version.outputs.tag_version }}
         generateReleaseNotes: false
         prerelease: false
         artifacts: "DevOps-Demo-${{ steps.get_version.outputs.version }},public/index.html"
