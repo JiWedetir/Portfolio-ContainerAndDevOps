@@ -60,7 +60,10 @@ jobs:
 
     - name: Extract Version from Tag
       id: get_tag_version
-      run: echo "::setOutput name=tag_version::$(echo ${{ github.ref_name }} | cut -d'/' -f2)"    
+      shell: pwsh
+      run:
+        $tagVersion = "${{ github.ref_name }}".Split('/')[-1] 
+        echo "::setOutput name=tag_version::$tagVersion"    
         
     - name: 📦 Create Release
       uses: ncipollo/release-action@v1
