@@ -63,7 +63,7 @@ jobs:
       shell: pwsh
       run:
         $tagVersion = "${{ github.ref_name }}".Split('/')[-1] 
-        echo "::setOutput name=tag_version::$tagVersion"    
+        Write-Host "::setOutput name=tag_version::$tagVersion"    
         
     - name: 📦 Create Release
       uses: ncipollo/release-action@v1
