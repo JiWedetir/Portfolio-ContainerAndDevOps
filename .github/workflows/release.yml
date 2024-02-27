@@ -1,0 +1,67 @@
+name: 🚀 Deploy website on tag Release with MD
+on:
+  push:
+    tags:
+      - release/*
+jobs:
+  build-page:
+    name: ⚙️ Build page
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Get code from repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Mandatory to use the extract version from tag action
+
+      - name: ⚙️ Building web page
+        run: |
+          pip install mkdocs mkdocs-material
+          mkdocs build --site-dir "public/"
+
+      - name: 💾 Storing generated page for later usage
+        uses: actions/upload-artifact@v3
+        with: 
+          name: public-page
+          path: public
+          retention-days: 0
+
+      - name: ⬇️ Get generated page
+        uses: actions/download-artifact@v3
+        with:
+          name: public-page
+          path: ./public/
+
+  web-deploy:
+    name: 🎉 Deploy
+    needs: build-page
+    runs-on: ubuntu-latest
+    steps:   
+    - name: 📂 Sync files
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: winweb20.servicehoster.ch
+        username: ${{ secrets.ftp_user}}
+        password: ${{ secrets.ftp_pass }}
+        local-dir: ./public/
+        server-dir: ./latest/
+
+  create-release:
+    name: 🎉 Release
+    needs: build-page
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+    - id: get_version
+      name: Get version
+      uses: jannemattila/get-version-from-tag@v3
+    - name: 📦 Create Release
+      uses: ncipollo/release-action@v1
+      with:
+        name: ${{ steps.get_version.outputs.version }}
+        generateReleaseNotes: false
+        prerelease: false
+        artifacts: "DevOps-Demo-${{ steps.get_version.outputs.version }},public/index.html"
+        bodyFile: "body.md"
+
+    
