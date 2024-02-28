@@ -65,10 +65,9 @@ jobs:
       run:
         echo "::setOutput name=tag_version::${TAG##*/}"
 
-    - name: Create Zip Archive-
+    - name: Create Zip Archive
       run: |
-        cd public
-        zip -r DevOps-Demo-${{ steps.get_tag_version.outputs.tag_version }}.zip ./*
+        zip -r DevOps-Demo-${{ steps.get_tag_version.outputs.tag_version }}.zip ./public/*
       
     - name: 📦 Create Release
       uses: ncipollo/release-action@v1
