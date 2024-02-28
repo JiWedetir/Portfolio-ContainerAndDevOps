@@ -67,8 +67,7 @@ jobs:
 
     - name: Create Zip Archive-
       run: |
-        cd public
-        zip -r DevOps-Demo-${{ steps.get_version.outputs.tag_version }}.zip ./*
+        zip -r DevOps-Demo-${{ steps.get_version.outputs.version }}.zip public/*
       
     - name: 📦 Create Release
       uses: ncipollo/release-action@v1
