@@ -58,17 +58,18 @@ jobs:
         name: public-page
         path: ./public/
 
-    - name: Extract Version from Tag
+    - name: 📤 Extract Version from Tag
       id: get-tag-version
       env:
         TAG: ${{ github.ref_name }}
       run:
         echo "TAG_VERSION=${TAG##*/}" >> "$GITHUB_OUTPUT"
 
-    - name: Create Zip Archive
+    - name: 🗜️ Create Zip Archive
       run: |
-        ls
-        zip -r DevOps-Demo-${{ steps.get-tag-version.outputs.TAG_VERSION }}.zip ./public/*
+        cd public
+        zip -r DevOps-Demo-${{ steps.get-tag-version.outputs.TAG_VERSION }}.zip ./*
+        cd ..
       
     - name: 📦 Create Release
       uses: ncipollo/release-action@v1
