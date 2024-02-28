@@ -69,7 +69,6 @@ jobs:
       run: |
         cd public
         zip -r DevOps-Demo-${{ steps.get-tag-version.outputs.TAG_VERSION }}.zip ./*
-        cd ..
       
     - name: 📦 Create Release
       uses: ncipollo/release-action@v1
