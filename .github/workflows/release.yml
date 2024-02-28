@@ -67,7 +67,7 @@ jobs:
 
     - name: Print Version to Console
       run:
-        echo "Extracted Version: ${{ steps.get_tag_version.outputs.tag_version }}"
+        echo "::debug::{Version= ${{ steps.get_tag_version.outputs.tag_version }} }"
 
     - name: Create Zip Archive+
       run: |
