@@ -67,7 +67,7 @@ jobs:
 
     - name: Create Zip Archive-
       run: |
-        zip -r DevOps-Demo-${{ steps.get_version.outputs.tag_version }}.zip public/*
+        zip -r DevOps-Demo-${{ steps.get_tag_version.outputs.tag_version }}.zip public/*
       
     - name: 📦 Create Release
       uses: ncipollo/release-action@v1
@@ -75,6 +75,6 @@ jobs:
         name: ${{ steps.get_tag_version.outputs.tag_version }}
         generateReleaseNotes: false
         prerelease: false
-        artifacts: DevOps-Demo-${{ steps.get_version.outputs.tag_version }}.zip
+        artifacts: DevOps-Demo-${{ steps.get_tag_version.outputs.tag_version }}.zip
 
     
