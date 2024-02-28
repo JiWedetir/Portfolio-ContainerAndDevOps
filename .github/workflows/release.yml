@@ -77,6 +77,6 @@ jobs:
         name: ${{ steps.get-tag-version.outputs.TAG_VERSION }}
         generateReleaseNotes: false
         prerelease: false
-        artifacts: DevOps-Demo-${{ steps.get-tag-version.outputs.TAG_VERSION }}.zip
+        artifacts: public/DevOps-Demo-${{ steps.get-tag-version.outputs.TAG_VERSION }}.zip
 
     
