@@ -59,15 +59,15 @@ jobs:
         path: ./public/
 
     - name: Extract Version from Tag
-      id: get_tag_version
+      id: get-tag-version
       env:
         TAG: ${{ github.ref_name }}
       run:
-        echo "{tag_version}=${TAG##*/}" >> "$GITHUB_OUTPUT"
+        echo "TAG_VERSION=${TAG##*/}" >> "$GITHUB_OUTPUT"
 
     - name: Print Version to Console
       run:
-        echo "::debug::{Version= ${{ steps.get_tag_version.outputs.tag_version }} }"
+        echo "::debug::{Version= ${{ steps.get-tag-version.outputs.TAG_VERSION }} }"
 
     - name: Create Zip Archive+
       run: |
