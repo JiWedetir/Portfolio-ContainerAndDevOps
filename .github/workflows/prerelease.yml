@@ -1,4 +1,4 @@
-name: 🚀 Deploy website on tag Beta
+name: 🚀 Deploy website on beta Tag with Release creation
 on:
   push:
     tags:
@@ -23,17 +23,17 @@ jobs:
             path: public
             retention-days: 0
 
-        - name: ⬇️ Get generated page
-          uses: actions/download-artifact@v3
-          with:
-            name: public-page
-            path: ./public/
-
   web-deploy:
     name: 🎉 Deploy
     needs: build-page
     runs-on: ubuntu-latest
     steps:
+    - name: ⬇️ Get generated page
+      uses: actions/download-artifact@v3
+      with:
+        name: public-page
+        path: ./public/
+
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
@@ -50,14 +50,29 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-    - id: get_version
-      name: Get version
-      uses: jannemattila/get-version-from-tag@v3
+    - name: ⬇️ Get generated page
+      uses: actions/download-artifact@v3
+      with:
+        name: public-page
+        path: ./public/
+
+    - name: 📤 Extract Version from Tag
+      id: get-tag-version
+      env:
+        TAG: ${{ github.ref_name }}
+      run:
+        echo "TAG_VERSION=${TAG##*/}" >> "$GITHUB_OUTPUT"
+
+    - name: 🗜️ Create Zip Archive
+      run: |
+        cd public
+        zip -r DevOps-Demo-${{ steps.get-tag-version.outputs.TAG_VERSION }}.zip ./*
+        cd ..
+      
     - name: 📦 Create Release
       uses: ncipollo/release-action@v1
       with:
-        name: ${{ steps.get_version.outputs.version }}
+        name: ${{ steps.get-tag-version.outputs.TAG_VERSION }}
         generateReleaseNotes: false
         prerelease: true
-        artifacts: "DevOps-Demo-${{ steps.get_version.outputs.version }},public/index.html"
-        bodyFile: "body.md"
+        artifacts: public/DevOps-Demo-${{ steps.get-tag-version.outputs.TAG_VERSION }}.zip
