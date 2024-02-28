@@ -63,11 +63,11 @@ jobs:
       env:
         TAG: ${{ github.ref_name }}
       run:
-        echo "::setOutput name=tag_version::${TAG##*/}"
+        echo "{tag_version}=${TAG##*/}" >> $GITHUB_OUTPUT
 
     - name: Print Version to Console
       run:
-        echo "::debug::{Version= ${{ steps.get_tag_version.outputs.tag_version }} }"
+        echo "::debug::{Version= ${{ $GITHUB_OUTPUT.tag_version }} }"
 
     - name: Create Zip Archive+
       run: |
