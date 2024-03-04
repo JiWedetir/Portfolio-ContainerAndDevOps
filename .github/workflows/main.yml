@@ -1,27 +1,29 @@
-name: 🚀 Deploy website on beta Tag with Release creation
+name: 🚀 Deploy website on Tag with Release creation
 on:
   push:
     tags:
+      - release/*
       - beta/*
+
 jobs:
   build-page:
-      name: ⚙️ Build page
-      runs-on: ubuntu-latest
-      steps:
-        - name: 🚚 Get code from repository
-          uses: actions/checkout@v3
+    name: ⚙️ Build page
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Get code from repository
+        uses: actions/checkout@v3
 
-        - name: ⚙️ Building web page
-          run: |
-            pip install mkdocs mkdocs-material
-            mkdocs build --site-dir "public/"
+      - name: ⚙️ Building web page
+        run: |
+          pip install mkdocs mkdocs-material
+          mkdocs build --site-dir "public/"
 
-        - name: 💾 Storing generated page for later usage
-          uses: actions/upload-artifact@v3
-          with: 
-            name: public-page
-            path: public
-            retention-days: 0
+      - name: 💾 Storing generated page for later usage
+        uses: actions/upload-artifact@v3
+        with: 
+          name: public-page
+          path: public
+          retention-days: 0
 
   web-deploy:
     name: 🎉 Deploy
@@ -38,10 +40,10 @@ jobs:
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
         server: winweb20.servicehoster.ch
-        username: ${{ secrets.ftp_user}}
+        username: ${{ secrets.ftp_user }}
         password: ${{ secrets.ftp_pass }}
         local-dir: ./public/
-        server-dir: ./beta/
+        server-dir: ${{ github.ref == 'refs/tags/beta/*' && './beta/' || './latest/' }}
 
   create-release:
     name: 🎉 Release
@@ -73,5 +75,5 @@ jobs:
       with:
         name: ${{ steps.get-tag-version.outputs.TAG_VERSION }}
         generateReleaseNotes: false
-        prerelease: true
+        prerelease: ${{ github.ref == 'refs/tags/beta/*' }}
         artifacts: public/DevOps-Demo-${{ steps.get-tag-version.outputs.TAG_VERSION }}.zip
