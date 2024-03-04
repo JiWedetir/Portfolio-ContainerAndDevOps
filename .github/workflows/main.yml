@@ -24,6 +24,13 @@ jobs:
           name: public-page
           path: public
           retention-days: 0
+      
+      - name: Check tag prefix
+        id: tag-prefix
+        run: |
+          echo "IS_BETA=$([[ ${{ github.ref }} == refs/tags/beta/* ]] && echo 'true' || echo 'false')" >> $GITHUB_ENV
+          echo ::set-output name=is_beta::$IS_BETA
+          echo "Tag is beta: $IS_BETA"
 
   web-deploy:
     name: 🎉 Deploy
@@ -43,7 +50,7 @@ jobs:
         username: ${{ secrets.ftp_user }}
         password: ${{ secrets.ftp_pass }}
         local-dir: ./public/
-        server-dir: ${{ github.ref == 'refs/tags/beta/*' && './beta/' || './latest/' }}
+        server-dir: ${{ steps.tag-prefix.outputs.is_beta == 'true' && './beta/' || './latest/' }}
 
   create-release:
     name: 🎉 Release
@@ -75,5 +82,5 @@ jobs:
       with:
         name: ${{ steps.get-tag-version.outputs.TAG_VERSION }}
         generateReleaseNotes: false
-        prerelease: ${{ github.ref == 'refs/tags/beta/*' }}
+        prerelease: ${{ steps.tag-prefix.outputs.is_beta }}
         artifacts: public/DevOps-Demo-${{ steps.get-tag-version.outputs.TAG_VERSION }}.zip
