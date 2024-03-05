@@ -37,6 +37,7 @@ jobs:
             echo "IS_BETA=false" >> $GITHUB_ENV
           fi
           echo "is_beta=$([[ "$TAG" == beta/* ]] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+          echo "Tag is: $is_beta"
 
   web-deploy:
     name: 🎉 Deploy
@@ -56,7 +57,7 @@ jobs:
         username: ${{ secrets.ftp_user }}
         password: ${{ secrets.ftp_pass }}
         local-dir: ./public/
-        server-dir: ${{ steps.tag-prefix.outputs.IS_BETA && './beta/' || './latest/' }}
+        server-dir: ${{ steps.tag-prefix.outputs.is_beta && './beta/' || './latest/' }}
 
   create-release:
     name: 🎉 Release
@@ -88,5 +89,5 @@ jobs:
       with:
         name: ${{ steps.get-tag-version.outputs.TAG_VERSION }}
         generateReleaseNotes: false
-        prerelease: ${{ steps.tag-prefix.outputs.IS_BETA }}
+        prerelease: ${{ steps.tag-prefix.outputs.is_beta }}
         artifacts: public/DevOps-Demo-${{ steps.get-tag-version.outputs.TAG_VERSION }}.zip
