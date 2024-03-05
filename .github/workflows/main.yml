@@ -9,6 +9,9 @@ jobs:
   build-page:
     name: ⚙️ Build page
     runs-on: ubuntu-latest
+    outputs:
+      output_prefix: ${{ steps.get-tag-prefix.outputs.var }}
+      output_version: ${{ steps.get-tag-version.outputs.var }}
     steps:
       - name: 🚚 Get code from repository
         uses: actions/checkout@v3
@@ -25,25 +28,36 @@ jobs:
           path: public
           retention-days: 0
       
+      - name: 📤 Extract Version from Tag
+        id: get-tag-version
+        env:
+          TAG: ${{ github.ref_name }}
+        run:
+          echo "var=${TAG##*/}" >> "$GITHUB_OUTPUT"
+      
       - name: Check tag prefix
-        id: tag-prefix
+        id: get-tag-prefix
         env:
           TAG: ${{ github.ref_name }}
         run: |
           echo "TAG=$TAG"
-          if [[ "$TAG" == beta/* ]]; then
-            echo "IS_BETA=true" >> $GITHUB_ENV
+          if [[ "$TAG" == beta/* ]]
+          then
+            echo "var=true" >> "$GITHUB_OUTPUT"
           else
-            echo "IS_BETA=false" >> $GITHUB_ENV
+            echo "var=false" >> "$GITHUB_OUTPUT"
           fi
-          echo "is_beta=$([[ "$TAG" == beta/* ]] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
-          echo "Tag is: $is_beta"
 
   web-deploy:
     name: 🎉 Deploy
     needs: build-page
     runs-on: ubuntu-latest
     steps:
+    - name: Set TAG_PREFIX environment variable
+      run: |
+        echo "TAG_PREFIX=${{ needs.build-page.outputs.output_prefix }}" >> $GITHUB_ENV
+        echo "Prefix: $TAG_PREFIX"
+
     - name: ⬇️ Get generated page
       uses: actions/download-artifact@v3
       with:
@@ -57,7 +71,7 @@ jobs:
         username: ${{ secrets.ftp_user }}
         password: ${{ secrets.ftp_pass }}
         local-dir: ./public/
-        server-dir: ${{ steps.tag-prefix.outputs.is_beta && './beta/' || './latest/' }}
+        server-dir: ${{ env.TAG_PREFIX == 'true' && './beta/' || './latest/' }}
 
   create-release:
     name: 🎉 Release
@@ -66,28 +80,27 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
+    - name: Set TAG_PREFIX & TAG_VERSION environment variable
+      run: |
+        echo "TAG_PREFIX=${{ needs.build-page.outputs.output_prefix }}" >> $GITHUB_ENV
+        echo "TAG_VERSION=${{ needs.build-page.outputs.output_version }}" >> $GITHUB_ENV
+        echo "Prefix: $TAG_PREFIX ; Version: $TAG_VERSION"
+
     - name: ⬇️ Get generated page
       uses: actions/download-artifact@v3
       with:
         name: public-page
         path: ./public/
 
-    - name: 📤 Extract Version from Tag
-      id: get-tag-version
-      env:
-        TAG: ${{ github.ref_name }}
-      run:
-        echo "TAG_VERSION=${TAG##*/}" >> "$GITHUB_OUTPUT"
-
     - name: 🗜️ Create Zip Archive
       run: |
         cd public
-        zip -r DevOps-Demo-${{ steps.get-tag-version.outputs.TAG_VERSION }}.zip ./*
+        zip -r DevOps-Demo-${{ env.TAG_VERSION }}.zip ./*
       
     - name: 📦 Create Release
       uses: ncipollo/release-action@v1
       with:
-        name: ${{ steps.get-tag-version.outputs.TAG_VERSION }}
+        name: ${{ env.TAG_VERSION }}
         generateReleaseNotes: false
-        prerelease: ${{ steps.tag-prefix.outputs.is_beta }}
-        artifacts: public/DevOps-Demo-${{ steps.get-tag-version.outputs.TAG_VERSION }}.zip
+        prerelease: ${{ env.TAG_PREFIX == 'true' }}
+        artifacts: public/DevOps-Demo-${{ env.TAG_VERSION }}.zip
