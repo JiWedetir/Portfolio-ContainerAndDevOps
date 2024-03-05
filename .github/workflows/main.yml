@@ -30,7 +30,8 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
         run: |
-          if ([[ $TAG == beta/* ]]; then
+          if ([[ $TAG == beta/* ]]
+          then
             echo "IS_BETA=true" >> $GITHUB_ENV
           else
             echo "IS_BETA=false" >> $GITHUB_ENV
