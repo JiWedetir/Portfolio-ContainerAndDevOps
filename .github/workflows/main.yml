@@ -30,12 +30,13 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
         run: |
-          if [[ $TAG == beta/* ]]
-          then
-            echo "IS_BETA=true" >> "$GITHUB_OUTPUT"
+          echo "TAG=$TAG"
+          if [[ "$TAG" == beta/* ]]; then
+            echo "IS_BETA=true" >> $GITHUB_ENV
           else
-            echo "IS_BETA=false" >> "$GITHUB_OUTPUT"
+            echo "IS_BETA=false" >> $GITHUB_ENV
           fi
+          echo "is_beta=$([[ "$TAG" == beta/* ]] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
 
   web-deploy:
     name: 🎉 Deploy
