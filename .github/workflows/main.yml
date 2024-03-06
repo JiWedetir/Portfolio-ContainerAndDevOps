@@ -55,9 +55,8 @@ jobs:
     steps:
     - name: Set TAG_PREFIX environment variable
       run: |
-        prefix=${{ needs.build-page.outputs.output_prefix }}
-        echo "TAG_PREFIX=$prefix" >> $GITHUB_ENV
-        echo "Prefix: $prefix"
+        echo "Prefix: ${{ needs.build-page.outputs.output_prefix }}"
+        echo "TAG_PREFIX=${{ needs.build-page.outputs.output_prefix }}" >> $GITHUB_ENV
 
     - name: ⬇️ Get generated page
       uses: actions/download-artifact@v3
@@ -83,11 +82,9 @@ jobs:
     steps:
     - name: Set TAG_PREFIX & TAG_VERSION environment variable
       run: |
-        prefix=${{ needs.build-page.outputs.output_prefix }}"
-        version=${{ needs.build-page.outputs.output_version }}"
-        echo "TAG_PREFIX=$prefix" >> $GITHUB_ENV
-        echo "TAG_VERSION=$version" >> $GITHUB_ENV
-        echo "Prefix: $prefix ; Version: $version"
+        echo "Prefix: ${{ needs.build-page.outputs.output_prefix }} ; Version: ${{ needs.build-page.outputs.output_version }}"
+        echo "TAG_PREFIX=${{ needs.build-page.outputs.output_prefix }}" >> $GITHUB_ENV
+        echo "TAG_VERSION=${{ needs.build-page.outputs.output_version }}" >> $GITHUB_ENV
 
     - name: ⬇️ Get generated page
       uses: actions/download-artifact@v3
