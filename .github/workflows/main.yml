@@ -35,12 +35,12 @@ jobs:
         run:
           echo "var=${TAG##*/}" >> "$GITHUB_OUTPUT"
       
-      - name: Check tag prefix
+      - name: 📤 Extract Prefix from Tag
         id: get-tag-prefix
         env:
           TAG: ${{ github.ref_name }}
         run: |
-          echo "TAG=$TAG"
+          echo "The Tag is: '$TAG'"
           if [[ "$TAG" == beta/* ]]
           then
             echo "var=true" >> "$GITHUB_OUTPUT"
@@ -55,8 +55,9 @@ jobs:
     steps:
     - name: Set TAG_PREFIX environment variable
       run: |
-        echo "TAG_PREFIX=${{ needs.build-page.outputs.output_prefix }}" >> $GITHUB_ENV
-        echo "Prefix: $TAG_PREFIX"
+        prefix=${{ needs.build-page.outputs.output_prefix }}
+        echo "TAG_PREFIX=$prefix" >> $GITHUB_ENV
+        echo "Prefix: $prefix"
 
     - name: ⬇️ Get generated page
       uses: actions/download-artifact@v3
@@ -82,9 +83,11 @@ jobs:
     steps:
     - name: Set TAG_PREFIX & TAG_VERSION environment variable
       run: |
-        echo "TAG_PREFIX=${{ needs.build-page.outputs.output_prefix }}" >> $GITHUB_ENV
-        echo "TAG_VERSION=${{ needs.build-page.outputs.output_version }}" >> $GITHUB_ENV
-        echo "Prefix: $TAG_PREFIX ; Version: $TAG_VERSION"
+        prefix=${{ needs.build-page.outputs.output_prefix }}"
+        version=${{ needs.build-page.outputs.output_version }}"
+        echo "TAG_PREFIX=$prefix" >> $GITHUB_ENV
+        echo "TAG_VERSION=$version" >> $GITHUB_ENV
+        echo "Prefix: $prefix ; Version: $version"
 
     - name: ⬇️ Get generated page
       uses: actions/download-artifact@v3
