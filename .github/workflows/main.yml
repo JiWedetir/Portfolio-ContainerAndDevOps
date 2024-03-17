@@ -10,7 +10,7 @@ jobs:
     name: ⚙️ Build page
     runs-on: ubuntu-latest
     outputs:
-      output_prefix: ${{ steps.get-tag-prefix.outputs.var }}
+      output_isbeta: ${{ steps.get-tag-prefix.outputs.var }}
       output_version: ${{ steps.get-tag-version.outputs.var }}
     steps:
       - name: 🚚 Get code from repository
@@ -35,7 +35,7 @@ jobs:
         run:
           echo "var=${TAG##*/}" >> "$GITHUB_OUTPUT"
       
-      - name: 📤 Extract Prefix from Tag
+      - name: 📤 Extract & Chech if Prefix is Beta
         id: get-tag-prefix
         env:
           TAG: ${{ github.ref_name }}
@@ -53,10 +53,10 @@ jobs:
     needs: build-page
     runs-on: ubuntu-latest
     steps:
-    - name: Set TAG_PREFIX environment variable
+    - name: Set TAG_ISBETA environment variable
       run: |
-        echo "Prefix: ${{ needs.build-page.outputs.output_prefix }}"
-        echo "TAG_PREFIX=${{ needs.build-page.outputs.output_prefix }}" >> $GITHUB_ENV
+        echo "Prefix is beta: ${{ needs.build-page.outputs.output_isbeta }}"
+        echo "TAG_ISBETA=${{ needs.build-page.outputs.output_isbeta }}" >> $GITHUB_ENV
 
     - name: ⬇️ Get generated page
       uses: actions/download-artifact@v3
@@ -71,7 +71,7 @@ jobs:
         username: ${{ secrets.ftp_user }}
         password: ${{ secrets.ftp_pass }}
         local-dir: ./public/
-        server-dir: ${{ env.TAG_PREFIX == 'true' && './beta/' || './latest/' }}
+        server-dir: ${{ env.TAG_ISBETA == 'true' && './beta/' || './latest/' }}
 
   create-release:
     name: 🎉 Release
@@ -80,10 +80,10 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-    - name: Set TAG_PREFIX & TAG_VERSION environment variable
+    - name: Set TAG_ISBETA & TAG_VERSION environment variable
       run: |
-        echo "Prefix: ${{ needs.build-page.outputs.output_prefix }} ; Version: ${{ needs.build-page.outputs.output_version }}"
-        echo "TAG_PREFIX=${{ needs.build-page.outputs.output_prefix }}" >> $GITHUB_ENV
+        echo "Prefix is beta: ${{ needs.build-page.outputs.output_isbeta }} ; Version: ${{ needs.build-page.outputs.output_version }}"
+        echo "TAG_ISBETA=${{ needs.build-page.outputs.output_isbeta }}" >> $GITHUB_ENV
         echo "TAG_VERSION=${{ needs.build-page.outputs.output_version }}" >> $GITHUB_ENV
 
     - name: ⬇️ Get generated page
@@ -102,5 +102,5 @@ jobs:
       with:
         name: ${{ env.TAG_VERSION }}
         generateReleaseNotes: false
-        prerelease: ${{ env.TAG_PREFIX == 'true' }}
+        prerelease: ${{ env.TAG_ISBETA == 'true' }}
         artifacts: public/DevOps-Demo-${{ env.TAG_VERSION }}.zip
