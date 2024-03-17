@@ -1,0 +1,106 @@
+name: 🚀 Deploy website on Tag with Release creation
+on:
+  push:
+    tags:
+      - release/*
+      - beta/*
+
+jobs:
+  build-page:
+    name: ⚙️ Build page
+    runs-on: ubuntu-latest
+    outputs:
+      output_isbeta: ${{ steps.get-tag-prefix.outputs.var }}
+      output_version: ${{ steps.get-tag-version.outputs.var }}
+    steps:
+      - name: 🚚 Get code from repository
+        uses: actions/checkout@v3
+
+      - name: ⚙️ Building web page
+        run: |
+          pip install mkdocs mkdocs-material
+          mkdocs build --site-dir "public/"
+
+      - name: 💾 Storing generated page for later usage
+        uses: actions/upload-artifact@v3
+        with: 
+          name: public-page
+          path: public
+          retention-days: 0
+      
+      - name: 📤 Extract Version from Tag
+        id: get-tag-version
+        env:
+          TAG: ${{ github.ref_name }}
+        run:
+          echo "var=${TAG##*/}" >> "$GITHUB_OUTPUT"
+      
+      - name: 📤 Extract & Chech if Prefix is Beta
+        id: get-tag-prefix
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          echo "The Tag is: '$TAG'"
+          if [[ "$TAG" == beta/* ]]
+          then
+            echo "var=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "var=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  web-deploy:
+    name: 🎉 Deploy
+    needs: build-page
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set TAG_ISBETA environment variable
+      run: |
+        echo "Prefix is beta: ${{ needs.build-page.outputs.output_isbeta }}"
+        echo "TAG_ISBETA=${{ needs.build-page.outputs.output_isbeta }}" >> $GITHUB_ENV
+
+    - name: ⬇️ Get generated page
+      uses: actions/download-artifact@v3
+      with:
+        name: public-page
+        path: ./public/
+
+    - name: 📂 Sync files
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: winweb20.servicehoster.ch
+        username: ${{ secrets.ftp_user }}
+        password: ${{ secrets.ftp_pass }}
+        local-dir: ./public/
+        server-dir: ${{ env.TAG_ISBETA == 'true' && './beta/' || './latest/' }}
+
+  create-release:
+    name: 🎉 Release
+    needs: build-page
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set TAG_ISBETA & TAG_VERSION environment variable
+      run: |
+        echo "Prefix is beta: ${{ needs.build-page.outputs.output_isbeta }} ; Version: ${{ needs.build-page.outputs.output_version }}"
+        echo "TAG_ISBETA=${{ needs.build-page.outputs.output_isbeta }}" >> $GITHUB_ENV
+        echo "TAG_VERSION=${{ needs.build-page.outputs.output_version }}" >> $GITHUB_ENV
+
+    - name: ⬇️ Get generated page
+      uses: actions/download-artifact@v3
+      with:
+        name: public-page
+        path: ./public/
+
+    - name: 🗜️ Create Zip Archive
+      run: |
+        cd public
+        zip -r DevOps-Demo-${{ env.TAG_VERSION }}.zip ./*
+      
+    - name: 📦 Create Release
+      uses: ncipollo/release-action@v1
+      with:
+        name: ${{ env.TAG_VERSION }}
+        generateReleaseNotes: false
+        prerelease: ${{ env.TAG_ISBETA == 'true' }}
+        artifacts: public/DevOps-Demo-${{ env.TAG_VERSION }}.zip
